@@ -5,5 +5,5 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   // GitHub Pages serves project sites below the repository name.
-  base: '/life-companion-v1.0/',
+  base: '/life-companion/',
 })
