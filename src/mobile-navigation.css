@@ -1,0 +1,129 @@
+/* Mobile uses a separate, horizontal navigation rail so content keeps its full width. */
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+
+  main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .topbar {
+    height: auto;
+    min-height: 76px;
+    padding: 15px 16px 9px;
+  }
+
+  .menu-button,
+  .menu-backdrop {
+    display: none;
+  }
+
+  .mobile-nav {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 10px 16px;
+    background: rgba(246, 245, 241, 0.96);
+    border-top: 1px solid #ece8e1;
+    border-bottom: 1px solid #e4e0d9;
+    box-shadow: 0 4px 10px rgba(66, 55, 41, 0.04);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .mobile-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-nav button {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border: 1px solid #e8e4dc;
+    border-radius: 12px;
+    background: #fffdf9;
+    color: #646b75;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .mobile-nav button span {
+    margin-right: 6px;
+    font-size: 16px;
+  }
+
+  .mobile-nav button.active {
+    border-color: #bfd7d0;
+    background: #dfeee9;
+    color: #47796f;
+    box-shadow: inset 0 0 0 1px #c9e1db;
+  }
+
+  .mobile-nav button:focus-visible {
+    outline: 3px solid #95c4b7;
+    outline-offset: 2px;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 100%;
+    padding-top: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-nav {
+    display: none;
+  }
+
+  .sidebar {
+    display: flex;
+    transform: none;
+  }
+
+  main {
+    margin-left: 264px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(190px, 1fr);
+  }
+
+  .character-grid {
+    grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .companion-card {
+    display: block;
+    text-align: center;
+  }
+
+  .companion-card .eyebrow,
+  .companion-card h3,
+  .companion-card > p:not(.eyebrow),
+  .companion-card .soft-button {
+    grid-column: auto;
+  }
+
+  .companion-avatar {
+    margin: 13px auto 8px;
+  }
+}

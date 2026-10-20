@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useLifeData } from './features/useLifeData'
 import type { Profile, Reward, Todo, WalletSummary } from './types/models'
 import './App.css'
+import './mobile-navigation.css'
 
 type Page = '首頁' | '角色設定' | '聊天室' | '我的資料' | '待辦與打卡' | '錢包與獎勵' | 'API 用量' | '設定'
 
@@ -14,22 +15,21 @@ const navigation: { name: Page; icon: string }[] = [
 function App() {
   const data = useLifeData()
   const [page, setPage] = useState<Page>('首頁')
-  const [menu, setMenu] = useState(false)
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const profileName = data.profile?.name || '親愛的你'
-  const choose = (next: Page) => { setPage(next); setMenu(false) }
+  const choose = (next: Page) => { setPage(next) }
   const send = () => { if (message.trim()) { setMessages([...messages, message.trim()]); setMessage('') } }
 
   return <div className="app-shell">
-    <aside className={'sidebar ' + (menu ? 'is-open' : '')}>
+    <aside className="sidebar">
       <div className="brand"><span>✦</span><div>Life Companion<small>陪伴你的每一天</small></div></div>
       <nav aria-label="主選單">{navigation.map(item => <button key={item.name} className={page === item.name ? 'active' : ''} onClick={() => choose(item.name)}><span className="nav-icon">{item.icon}</span>{item.name}</button>)}</nav>
       <div className="profile-mini"><div className="avatar">{data.profile?.nickname.slice(0, 1) || '你'}</div><div><strong>{profileName}</strong><small>今天也慢慢來</small></div><span>⌄</span></div>
     </aside>
-    {menu && <button className="menu-backdrop" aria-label="關閉選單" onClick={() => setMenu(false)} />}
     <main>
-      <header className="topbar"><button className="menu-button" aria-label={menu ? '關閉選單' : '開啟選單'} aria-expanded={menu} onClick={() => setMenu(!menu)}>☰</button><div><p className="eyebrow">Life Companion</p><h1>{page}</h1></div><button className="bell" aria-label="通知">♢<i /></button></header>
+      <header className="topbar"><div><p className="eyebrow">Life Companion</p><h1>{page}</h1></div><button className="bell" aria-label="通知">♢<i /></button></header>
+      <nav className="mobile-nav" aria-label="手機主選單">{navigation.map(item => <button key={item.name} className={page === item.name ? 'active' : ''} onClick={() => choose(item.name)}><span>{item.icon}</span>{item.name}</button>)}</nav>
       <section className="content">{!data.ready ? <Loading /> : <>
         {page === '首頁' && <Home name={profileName} todos={data.todos} wallet={data.wallet} setTodoCompleted={data.setTodoCompleted} />}
         {page === '角色設定' && <Character profile={data.profile} saveProfile={data.saveProfile} />}
