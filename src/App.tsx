@@ -1,14 +1,18 @@
 import { useState, type FormEvent } from 'react'
 import { useLifeData } from './features/useLifeData'
+import { HabitPage } from './features/HabitPage'
+import { AbilityRadar } from './features/AbilityRadar'
 import type { Profile, Reward, Todo, WalletSummary } from './types/models'
 import './App.css'
 import './mobile-navigation.css'
+import './habits.css'
+import './habit-extras.css'
 
-type Page = '首頁' | '角色設定' | '聊天室' | '我的資料' | '待辦與打卡' | '錢包與獎勵' | 'API 用量' | '設定'
+type Page = '首頁' | '角色設定' | '聊天室' | '我的資料' | '待辦事項' | '打卡習慣' | '錢包與獎勵' | 'API 用量' | '設定'
 
 const navigation: { name: Page; icon: string }[] = [
   { name: '首頁', icon: '⌂' }, { name: '角色設定', icon: '♧' }, { name: '聊天室', icon: '◌' },
-  { name: '我的資料', icon: '♡' }, { name: '待辦與打卡', icon: '✓' }, { name: '錢包與獎勵', icon: '◇' },
+  { name: '我的資料', icon: '♡' }, { name: '待辦事項', icon: '✓' }, { name: '打卡習慣', icon: '◉' }, { name: '錢包與獎勵', icon: '◇' },
   { name: 'API 用量', icon: '◫' }, { name: '設定', icon: '⚙' },
 ]
 
@@ -32,10 +36,11 @@ function App() {
       <nav className="mobile-nav" aria-label="手機主選單">{navigation.map(item => <button key={item.name} className={page === item.name ? 'active' : ''} onClick={() => choose(item.name)}><span>{item.icon}</span>{item.name}</button>)}</nav>
       <section className="content">{!data.ready ? <Loading /> : <>
         {page === '首頁' && <Home name={profileName} todos={data.todos} wallet={data.wallet} setTodoCompleted={data.setTodoCompleted} />}
-        {page === '角色設定' && <Character profile={data.profile} saveProfile={data.saveProfile} />}
+        {page === '角色設定' && <Character profile={data.profile} saveProfile={data.saveProfile} ability={data.ability} />}
         {page === '聊天室' && <Chat message={message} setMessage={setMessage} messages={messages} send={send} />}
-        {page === '我的資料' && <ProfilePage profile={data.profile} saveProfile={data.saveProfile} />}
-        {page === '待辦與打卡' && <Tasks todos={data.todos} addTodo={data.addTodo} deleteTodo={data.deleteTodo} setTodoCompleted={data.setTodoCompleted} />}
+        {page === '我的資料' && <ProfilePage profile={data.profile} saveProfile={data.saveProfile} ability={data.ability} />}
+        {page === '待辦事項' && <Tasks todos={data.todos} addTodo={data.addTodo} deleteTodo={data.deleteTodo} setTodoCompleted={data.setTodoCompleted} />}
+        {page === '打卡習慣' && <HabitPage loadHabitPeriod={data.loadHabitPeriod} saveHabit={data.saveHabit} deactivateHabit={data.deactivateHabit} setHabitCheckin={data.setHabitCheckin} undoLatestCheckin={data.undoLatestCheckin} applyMonthlyMakeup={data.applyMonthlyMakeup} getPeriodStats={data.getPeriodStats} />}
         {page === '錢包與獎勵' && <Wallet wallet={data.wallet} rewards={data.rewards} />}
         {page === 'API 用量' && <Usage />}
         {page === '設定' && <Settings />}
@@ -73,8 +78,8 @@ function ProfileEditor({ profile, saveProfile, title }: { profile?: Profile; sav
   return <form className="card form-card" onSubmit={submit}><h3>{title}</h3><label>名稱<input value={name} onChange={event => setName(event.target.value)} required placeholder="例如：親愛的你" /></label><label>暱稱<input value={nickname} onChange={event => setNickname(event.target.value)} placeholder="顯示在頭像旁的名字" /></label><label>簡介<textarea value={bio} onChange={event => setBio(event.target.value)} placeholder="寫下一句給自己的話" /></label><div><button className="primary">{saved ? '已儲存 ✓' : '儲存資料'}</button><small className="form-note">資料只儲存在此瀏覽器的 IndexedDB。</small></div></form>
 }
 
-function Character({ profile, saveProfile }: { profile?: Profile; saveProfile: (input: Pick<Profile, 'name' | 'nickname' | 'bio'>) => Promise<void> }) { return <div className="page-stack"><section className="card page-hero"><p className="eyebrow">YOUR COMPANION</p><h2>從你的角色卡開始。</h2><p>更新你的名稱與自我介紹，資料會留在這台裝置。</p></section><section className="character-grid"><div className="card character-preview"><div className="companion-avatar large">❀</div><h3>{profile?.nickname || '你'}</h3><p>{profile?.bio || '溫暖、安靜，總是在需要的時候出現。'}</p></div><ProfileEditor profile={profile} saveProfile={saveProfile} title="角色卡" /></section></div> }
-function ProfilePage({ profile, saveProfile }: { profile?: Profile; saveProfile: (input: Pick<Profile, 'name' | 'nickname' | 'bio'>) => Promise<void> }) { return <div className="page-stack"><section className="card profile-page"><div className="avatar big">{profile?.nickname.slice(0, 1) || '你'}</div><div><p className="eyebrow">MY SPACE</p><h2>{profile?.name || '親愛的你'}</h2><p>{profile?.bio || '這是一個只屬於你的陪伴角落。'}</p></div></section><ProfileEditor profile={profile} saveProfile={saveProfile} title="編輯我的資料" /></div> }
+function Character({ profile, saveProfile, ability }: { profile?: Profile; saveProfile: (input: Pick<Profile, 'name' | 'nickname' | 'bio'>) => Promise<void>; ability: import('./types/models').AbilitySummary }) { return <div className="page-stack"><section className="card page-hero"><p className="eyebrow">YOUR COMPANION</p><h2>從你的角色卡開始。</h2><p>更新你的名稱與自我介紹，資料會留在這台裝置。</p></section><section className="character-grid"><div className="card character-preview"><div className="companion-avatar large">❀</div><h3>{profile?.nickname || '你'}</h3><p>{profile?.bio || '溫暖、安靜，總是在需要的時候出現。'}</p></div><ProfileEditor profile={profile} saveProfile={saveProfile} title="角色卡" /></section><AbilityRadar ability={ability} /></div> }
+function ProfilePage({ profile, saveProfile, ability }: { profile?: Profile; saveProfile: (input: Pick<Profile, 'name' | 'nickname' | 'bio'>) => Promise<void>; ability: import('./types/models').AbilitySummary }) { return <div className="page-stack"><section className="card profile-page"><div className="avatar big">{profile?.nickname.slice(0, 1) || '你'}</div><div><p className="eyebrow">MY SPACE</p><h2>{profile?.name || '親愛的你'}</h2><p>{profile?.bio || '這是一個只屬於你的陪伴角落。'}</p></div></section><AbilityRadar ability={ability} /><ProfileEditor profile={profile} saveProfile={saveProfile} title="編輯我的資料" /></div> }
 
 function Wallet({ wallet, rewards }: { wallet: WalletSummary; rewards: Reward[] }) { return <div className="page-stack"><section className="wallet card"><div><p className="eyebrow">YOUR ENERGY</p><h2>{wallet.currency} <small>遊戲貨幣</small></h2><p>等級 Lv. {wallet.level} ・ 經驗值 {wallet.experience}（本級 {wallet.experienceIntoLevel}/100）</p></div><div className="coin">✦</div></section><section className="card tasks-card"><div className="section-title"><h3>可以兌換的獎勵</h3><button className="text-button">目前貨幣 {wallet.currency}</button></div><div className="rewards">{rewards.map(reward => <RewardCard key={reward.id} reward={reward} />)}</div></section></div> }
 function RewardCard({ reward }: { reward: Reward }) { return <div className="reward"><span>✦</span><strong>{reward.name}</strong><small>{reward.cost} 點 ・ {reward.status === 'available' ? '可兌換' : reward.status}</small><button>兌換</button></div> }

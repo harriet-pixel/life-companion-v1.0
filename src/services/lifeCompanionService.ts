@@ -59,8 +59,8 @@ export async function setTodoCompleted(todo: Todo, completed: boolean) {
 }
 
 export async function getWalletSummary(): Promise<WalletSummary> {
-  const transactions = await db.walletTransactions.toArray()
-  const experience = transactions.filter(item => item.type === 'experience').reduce((total, item) => total + item.amount, 0)
-  const currency = transactions.filter(item => item.type === 'currency').reduce((total, item) => total + item.amount, 0)
+  const [transactions, habitTransactions] = await Promise.all([db.walletTransactions.toArray(), db.habitTransactions.toArray()])
+  const experience = transactions.filter(item => item.type === 'experience').reduce((total, item) => total + item.amount, 0) + habitTransactions.filter(item => !item.reversedAt).reduce((total, item) => total + item.experienceDelta, 0)
+  const currency = transactions.filter(item => item.type === 'currency').reduce((total, item) => total + item.amount, 0) + habitTransactions.filter(item => !item.reversedAt).reduce((total, item) => total + item.currencyDelta, 0)
   return { experience, currency, level: Math.floor(experience / 100) + 1, experienceIntoLevel: experience % 100 }
 }
