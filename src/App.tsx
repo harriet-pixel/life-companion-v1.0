@@ -7,6 +7,7 @@ import './App.css'
 import './mobile-navigation.css'
 import './habits.css'
 import './habit-extras.css'
+import './database-error.css'
 
 type Page = '首頁' | '角色設定' | '聊天室' | '我的資料' | '待辦事項' | '打卡習慣' | '錢包與獎勵' | 'API 用量' | '設定'
 
@@ -34,7 +35,7 @@ function App() {
     <main>
       <header className="topbar"><div><p className="eyebrow">Life Companion</p><h1>{page}</h1></div><button className="bell" aria-label="通知">♢<i /></button></header>
       <nav className="mobile-nav" aria-label="手機主選單">{navigation.map(item => <button key={item.name} className={page === item.name ? 'active' : ''} onClick={() => choose(item.name)}><span>{item.icon}</span>{item.name}</button>)}</nav>
-      <section className="content">{!data.ready ? <Loading /> : data.error ? <DatabaseError message={data.error} retry={data.retry} /> : <>
+      <section className="content">{!data.ready ? <Loading /> : data.error ? <DatabaseError diagnostic={data.error} retry={data.retry} rebuild={data.rebuild} /> : <>
         {page === '首頁' && <Home name={profileName} todos={data.todos} wallet={data.wallet} setTodoCompleted={data.setTodoCompleted} />}
         {page === '角色設定' && <Character profile={data.profile} saveProfile={data.saveProfile} ability={data.ability} />}
         {page === '聊天室' && <Chat message={message} setMessage={setMessage} messages={messages} send={send} />}
@@ -50,7 +51,10 @@ function App() {
 }
 
 function Loading() { return <div className="card loading">正在準備你的本機資料…</div> }
-function DatabaseError({ message, retry }: { message: string; retry: () => Promise<void> }) { return <section className="card loading"><h2>無法開啟本機資料</h2><p>{message}</p><button className="primary" onClick={() => void retry()}>重新載入</button></section> }
+function DatabaseError({ diagnostic, retry, rebuild }: { diagnostic: import('./features/useLifeData').DatabaseDiagnostic; retry: () => Promise<void>; rebuild: () => Promise<void> }) {
+  const details = 'Dexie error name: ' + diagnostic.name + '\nerror message: ' + diagnostic.message + '\ndatabase name: ' + diagnostic.database + '\nschema / database version: ' + diagnostic.version + '\ninitialization step: ' + diagnostic.step
+  return <section className="card loading database-error"><h2>無法開啟本機資料</h2><p>初始化沒有完成，因此網站尚未讀取或寫入你的資料。</p><label>診斷資訊（可複製）<textarea readOnly value={details} aria-label="IndexedDB 診斷資訊" /></label><div><button className="primary" onClick={() => void retry()}>重新載入</button><button className="soft-button" onClick={() => { if (window.confirm('確定要重建本機資料庫嗎？此操作會刪除此瀏覽器中的 Life Companion 本機資料。')) void rebuild() }}>重建本機資料庫</button></div></section>
+}
 
 function Home({ name, todos, wallet, setTodoCompleted }: { name: string; todos: Todo[]; wallet: WalletSummary; setTodoCompleted: (todo: Todo, completed: boolean) => Promise<void> }) {
   const done = todos.filter(todo => todo.completed).length

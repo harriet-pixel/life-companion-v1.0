@@ -1,11 +1,10 @@
-import { db, ensureHabitSystemReset } from '../db/database'
+import { db } from '../db/database'
 import type { Profile, Todo, WalletSummary } from '../types/models'
 
 const SEED_KEY = 'seeded-v1'
 const today = () => new Date().toISOString().slice(0, 10)
 
 export async function initializeData() {
-  await ensureHabitSystemReset()
   const now = new Date()
   await db.transaction('rw', db.profile, db.todos, db.rewards, db.settings, async () => {
     const seeded = await db.settings.get(SEED_KEY)

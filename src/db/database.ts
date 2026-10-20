@@ -23,7 +23,7 @@ db.version(1).stores({
   settings: 'key, updatedAt',
 })
 
-db.version(2).stores({
+const version2Schema = {
   profile: '++id, updatedAt',
   todos: '++id, date, completed, createdAt',
   habits: '++id, periodKey, activeFrom, isActive, createdAt',
@@ -33,13 +33,15 @@ db.version(2).stores({
   walletTransactions: '++id, type, createdAt',
   rewards: '++id, status, createdAt',
   settings: 'key, updatedAt',
-}).upgrade(transaction => {
-  const settings = transaction.table('settings')
-  const walletTransactions = transaction.table('walletTransactions')
-  return settings.get('habit-system-reset-v1').then(reset => {
-    if (reset) return undefined
-    return walletTransactions.clear().then(() => settings.put({ key: 'habit-system-reset-v1', value: 'true', updatedAt: new Date() }))
-  })
+}
+
+// Schema upgrades must not reset user data. v3 also upgrades databases that reached
+// the earlier v2 release, whose upgrade hook attempted application work.
+db.version(2).stores(version2Schema)
+db.version(3).stores(version2Schema)
+db.version(4).stores({
+  ...version2Schema,
+  profile: '++id, createdAt, updatedAt',
 })
 
 export async function openDatabase() {
@@ -52,4 +54,10 @@ export async function ensureHabitSystemReset() {
     if (reset) return undefined
     return db.walletTransactions.clear().then(() => db.settings.put({ key: 'habit-system-reset-v1', value: 'true', updatedAt: new Date() }))
   }))
+}
+
+export async function rebuildLocalDatabase() {
+  db.close()
+  await Dexie.delete(db.name)
+  await db.open()
 }
