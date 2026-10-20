@@ -33,11 +33,23 @@ db.version(2).stores({
   walletTransactions: '++id, type, createdAt',
   rewards: '++id, status, createdAt',
   settings: 'key, updatedAt',
-}).upgrade(async transaction => {
+}).upgrade(transaction => {
   const settings = transaction.table('settings')
-  const reset = await settings.get('habit-system-reset-v1')
-  if (!reset) {
-    await transaction.table('walletTransactions').clear()
-    await settings.put({ key: 'habit-system-reset-v1', value: 'true', updatedAt: new Date() })
-  }
+  const walletTransactions = transaction.table('walletTransactions')
+  return settings.get('habit-system-reset-v1').then(reset => {
+    if (reset) return undefined
+    return walletTransactions.clear().then(() => settings.put({ key: 'habit-system-reset-v1', value: 'true', updatedAt: new Date() }))
+  })
 })
+
+export async function openDatabase() {
+  await db.open()
+  return db
+}
+
+export async function ensureHabitSystemReset() {
+  await db.transaction('rw', db.settings, db.walletTransactions, () => db.settings.get('habit-system-reset-v1').then(reset => {
+    if (reset) return undefined
+    return db.walletTransactions.clear().then(() => db.settings.put({ key: 'habit-system-reset-v1', value: 'true', updatedAt: new Date() }))
+  }))
+}

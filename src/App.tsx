@@ -34,7 +34,7 @@ function App() {
     <main>
       <header className="topbar"><div><p className="eyebrow">Life Companion</p><h1>{page}</h1></div><button className="bell" aria-label="通知">♢<i /></button></header>
       <nav className="mobile-nav" aria-label="手機主選單">{navigation.map(item => <button key={item.name} className={page === item.name ? 'active' : ''} onClick={() => choose(item.name)}><span>{item.icon}</span>{item.name}</button>)}</nav>
-      <section className="content">{!data.ready ? <Loading /> : <>
+      <section className="content">{!data.ready ? <Loading /> : data.error ? <DatabaseError message={data.error} retry={data.retry} /> : <>
         {page === '首頁' && <Home name={profileName} todos={data.todos} wallet={data.wallet} setTodoCompleted={data.setTodoCompleted} />}
         {page === '角色設定' && <Character profile={data.profile} saveProfile={data.saveProfile} ability={data.ability} />}
         {page === '聊天室' && <Chat message={message} setMessage={setMessage} messages={messages} send={send} />}
@@ -50,6 +50,7 @@ function App() {
 }
 
 function Loading() { return <div className="card loading">正在準備你的本機資料…</div> }
+function DatabaseError({ message, retry }: { message: string; retry: () => Promise<void> }) { return <section className="card loading"><h2>無法開啟本機資料</h2><p>{message}</p><button className="primary" onClick={() => void retry()}>重新載入</button></section> }
 
 function Home({ name, todos, wallet, setTodoCompleted }: { name: string; todos: Todo[]; wallet: WalletSummary; setTodoCompleted: (todo: Todo, completed: boolean) => Promise<void> }) {
   const done = todos.filter(todo => todo.completed).length

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { currentPeriodKey, periodDays } from '../services/habitService'
 import type { AbilityAllocation, Habit, HabitCheckin, HabitLevel, PeriodStats } from '../types/models'
 
@@ -38,24 +38,29 @@ export function HabitPage({ loadHabitPeriod, saveHabit, deactivateHabit, setHabi
   const [stats, setStats] = useState<PeriodStats[]>([])
   const [editing, setEditing] = useState<Habit | undefined>()
   const [showForm, setShowForm] = useState(false)
-  const refresh = async () => {
-    const next = await loadHabitPeriod(period)
-    setHabits(next.habits)
-    setCheckins(next.checkins)
-    setAchievements(next.achievements)
-    setMakeupUsed(next.makeupUsed)
-    setStats(await getPeriodStats())
-  }
-  useEffect(() => {
-    void (async () => {
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | undefined>()
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    setLoadError(undefined)
+    try {
       const next = await loadHabitPeriod(period)
+      const nextStats = await getPeriodStats()
       setHabits(next.habits)
       setCheckins(next.checkins)
       setAchievements(next.achievements)
       setMakeupUsed(next.makeupUsed)
-      setStats(await getPeriodStats())
-    })()
+      setStats(nextStats)
+    } catch (reason) {
+      if (import.meta.env.DEV) console.error('打卡習慣資料載入失敗', reason)
+      setLoadError('打卡資料暫時無法載入，請重新載入。')
+    } finally {
+      setLoading(false)
+    }
   }, [period, loadHabitPeriod, getPeriodStats])
+  useEffect(() => {
+    void (async () => { await refresh() })()
+  }, [refresh])
   const days = useMemo(() => periodDays(period), [period])
   const active = habits.filter(item => item.isActive !== false)
   const eliteCount = checkins.filter(item => item.level === 'elite').length
@@ -70,6 +75,8 @@ export function HabitPage({ loadHabitPeriod, saveHabit, deactivateHabit, setHabi
     await refresh()
   }
 
+  if (loading) return <section className="card loading">正在載入打卡習慣…</section>
+  if (loadError) return <section className="card loading"><h2>無法載入打卡習慣</h2><p>{loadError}</p><button className="primary" onClick={() => void refresh()}>重新載入</button></section>
   return <div className="page-stack habit-page">
     <section className="card page-hero"><p className="eyebrow">FLEXIBLE HABITS</p><h2>打卡習慣</h2><p>每期最多三個習慣；Mini、Plus、Elite 依你的實際完成程度記錄。</p></section>
     <section className="habit-toolbar card"><div><strong>{period.slice(0, 7)} 月</strong><p>本期 Elite：{eliteCount} 次 ・ 已解鎖 {achievements.length} 項成就</p></div><div className="period-switch"><button className={period.endsWith('A') ? 'active' : ''} onClick={() => changePeriod('A')}>1–15 日</button><button className={period.endsWith('B') ? 'active' : ''} onClick={() => changePeriod('B')}>16–30 日</button></div></section>
