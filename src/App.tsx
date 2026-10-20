@@ -27,8 +27,9 @@ function App() {
       <nav aria-label="主選單">{navigation.map(item => <button key={item.name} className={page === item.name ? 'active' : ''} onClick={() => choose(item.name)}><span className="nav-icon">{item.icon}</span>{item.name}</button>)}</nav>
       <div className="profile-mini"><div className="avatar">{data.profile?.nickname.slice(0, 1) || '你'}</div><div><strong>{profileName}</strong><small>今天也慢慢來</small></div><span>⌄</span></div>
     </aside>
+    {menu && <button className="menu-backdrop" aria-label="關閉選單" onClick={() => setMenu(false)} />}
     <main>
-      <header className="topbar"><button className="menu-button" aria-label="開啟選單" onClick={() => setMenu(!menu)}>☰</button><div><p className="eyebrow">Life Companion</p><h1>{page}</h1></div><button className="bell" aria-label="通知">♢<i /></button></header>
+      <header className="topbar"><button className="menu-button" aria-label={menu ? '關閉選單' : '開啟選單'} aria-expanded={menu} onClick={() => setMenu(!menu)}>☰</button><div><p className="eyebrow">Life Companion</p><h1>{page}</h1></div><button className="bell" aria-label="通知">♢<i /></button></header>
       <section className="content">{!data.ready ? <Loading /> : <>
         {page === '首頁' && <Home name={profileName} todos={data.todos} wallet={data.wallet} setTodoCompleted={data.setTodoCompleted} />}
         {page === '角色設定' && <Character profile={data.profile} saveProfile={data.saveProfile} />}
